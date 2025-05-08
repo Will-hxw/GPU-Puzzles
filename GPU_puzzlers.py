@@ -1,38 +1,24 @@
-# # GPU Puzzles
-# - by [Sasha Rush](http://rush-nlp.com) - [srush_nlp](https://twitter.com/srush_nlp)
-
+# # GPU 习题集
+# - 作者：[Sasha Rush](http://rush-nlp.com) - [srush_nlp](https://twitter.com/srush_nlp)
 
 # ![](https://github.com/srush/GPU-Puzzles/raw/main/cuda.png)
 
-# GPU architectures are critical to machine learning, and seem to be
-# becoming even more important every day. However, you can be an expert
-# in machine learning without ever touching GPU code. It is hard to gain
-# intuition working through abstractions. 
+# GPU 架构对于机器学习至关重要，并且似乎变得越来越重要。然而，即使你是一位机器学习专家，也可能从未接触过 GPU 编程。通过抽象层工作很难获得直觉。
 
-# This notebook is an attempt to teach beginner GPU programming in a
-# completely interactive fashion. Instead of providing text with
-# concepts, it throws you right into coding and building GPU
-# kernels. The exercises use NUMBA which directly maps Python
-# code to CUDA kernels. It looks like Python but is basically
-# identical to writing low-level CUDA code. 
-# In a few hours, I think you can go from basics to
-# understanding the real algorithms that power 99% of deep learning
-# today. If you do want to read the manual, it is here:
+# 这个笔记本尝试以完全交互式的方式教授初学者 GPU 编程。与其提供带有概念的文本，不如直接让你进入编码和构建 GPU 内核的过程。这些练习使用 NUMBA，它直接将 Python 代码映射到 CUDA 内核。看起来像 Python，但实际上与编写低级 CUDA 代码基本相同。只需几个小时，我相信你可以从基础到理解当今 99% 深度学习算法的真正实现。
 
-# [NUMBA CUDA Guide](https://numba.readthedocs.io/en/stable/cuda/index.html)
+# 如果你想阅读手册，可以参考以下链接：
 
-# I recommend doing these in Colab, as it is easy to get started.  Be
-# sure to make your own copy, turn on GPU mode in the settings (`Runtime / Change runtime type`, then set `Hardware accelerator` to `GPU`), and
-# then get to coding.
+# [NUMBA CUDA 指南](https://numba.readthedocs.io/en/stable/cuda/index.html)
 
-# [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/srush/GPU-Puzzles/blob/main/GPU_puzzlers.ipynb)
+# 我建议在 Colab 中完成这些练习，因为它易于启动。确保创建自己的副本，在设置中启用 GPU 模式（`运行时 / 更改运行时类型`，然后将 `硬件加速器` 设置为 `GPU`），然后开始编码。
 
-# (If you are into this style of puzzle, also check out my [Tensor
-# Puzzles](https://github.com/srush/Tensor-Puzzles) for PyTorch.)
+# [![在 Colab 中打开](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/srush/GPU-Puzzles/blob/main/GPU_puzzlers.ipynb)
+
+# （如果你喜欢这种谜题风格，还可以查看我的 [Tensor Puzzles](https://github.com/srush/Tensor-Puzzles) 用于 PyTorch。）
 
 # !pip install -qqq git+https://github.com/danoneata/chalk@srush-patch-1
 # !wget -q https://github.com/srush/GPU-Puzzles/raw/main/robot.png https://github.com/srush/GPU-Puzzles/raw/main/lib.py
-
 
 import numba
 import numpy as np
@@ -43,25 +29,16 @@ warnings.filterwarnings(
     action="ignore", category=numba.NumbaPerformanceWarning, module="numba"
 )
 
-
-# ## Puzzle 1: Map
+# ## 练习 1: 映射
 #
-# Implement a "kernel" (GPU function) that adds 10 to each position of vector `a`
-# and stores it in vector `out`.  You have 1 thread per position.
+# 实现一个“内核”（GPU 函数），将向量 `a` 的每个位置加 10，并将其存储在向量 `out` 中。每个位置有一个线程。
 
+# **警告** 这段代码看起来像 Python，但实际上它是 CUDA！你不能使用标准的 Python 工具（如列表推导式）或询问 Numpy 属性（如形状或大小）。如果需要大小，则作为参数给出。
+# 这些练习只需要执行简单的操作，例如 +、*、简单的数组索引、for 循环和 if 语句。
+# 你可以使用局部变量。
+# 如果出现错误，那可能是因为你做了某些复杂的事情 :).
 
-# **Warning** This code looks like Python but it is really CUDA! You cannot use
-# standard python tools like list comprehensions or ask for Numpy properties
-# like shape or size (if you need the size, it is given as an argument).
-# The puzzles only require doing simple operations, basically
-# +, *, simple array indexing, for loops, and if statements.
-# You are allowed to use local variables. 
-# If you get an
-# error it is probably because you did something fancy :). 
-
-
-# *Tip: Think of the function `call` as being run 1 time for each thread.
-# The only difference is that `cuda.threadIdx.x` changes each time.*
+# *提示：可以将函数 `call` 视为被每个线程运行 1 次。唯一不同的是 `cuda.threadIdx.x` 每次都会改变。*
 
 # +
 def map_spec(a):
@@ -71,7 +48,7 @@ def map_spec(a):
 def map_test(cuda):
     def call(out, a) -> None:
         local_i = cuda.threadIdx.x
-        # FILL ME IN (roughly 1 lines)
+        # 在这里填写代码（大约 1 行）
 
     return call
 
@@ -80,7 +57,7 @@ SIZE = 4
 out = np.zeros((SIZE,))
 a = np.arange(SIZE)
 problem = CudaProblem(
-    "Map", map_test, [a], out, threadsperblock=Coord(SIZE, 1), spec=map_spec
+    "映射", map_test, [a], out, threadsperblock=Coord(SIZE, 1), spec=map_spec
 )
 problem.show()
 
@@ -88,10 +65,9 @@ problem.show()
 problem.check()
 # -
 
-# ## Puzzle 2 - Zip
+# ## 练习 2 - 合并
 #
-# Implement a kernel that adds together each position of `a` and `b` and stores it in `out`.
-# You have 1 thread per position.
+# 实现一个内核，将 `a` 和 `b` 的每个位置相加，并将其存储在 `out` 中。每个位置有一个线程。
 
 # +
 def zip_spec(a, b):
@@ -101,7 +77,7 @@ def zip_spec(a, b):
 def zip_test(cuda):
     def call(out, a, b) -> None:
         local_i = cuda.threadIdx.x
-        # FILL ME IN (roughly 1 lines)
+        # 在这里填写代码（大约 1 行）
 
     return call
 
@@ -111,7 +87,7 @@ out = np.zeros((SIZE,))
 a = np.arange(SIZE)
 b = np.arange(SIZE)
 problem = CudaProblem(
-    "Zip", zip_test, [a, b], out, threadsperblock=Coord(SIZE, 1), spec=zip_spec
+    "合并", zip_test, [a, b], out, threadsperblock=Coord(SIZE, 1), spec=zip_spec
 )
 problem.show()
 # +
@@ -120,16 +96,15 @@ problem.show()
 problem.check()
 # -
 
-# ## Puzzle 3 - Guards
+# ## 练习 3 - 守卫
 #
-# Implement a kernel that adds 10 to each position of `a` and stores it in `out`.
-# You have more threads than positions.
+# 实现一个内核，将 `a` 的每个位置加 10，并将其存储在 `out` 中。线程数多于位置数。
 
 # +
 def map_guard_test(cuda):
     def call(out, a, size) -> None:
         local_i = cuda.threadIdx.x
-        # FILL ME IN (roughly 2 lines)
+        # 在这里填写代码（大约 2 行）
 
     return call
 
@@ -138,7 +113,7 @@ SIZE = 4
 out = np.zeros((SIZE,))
 a = np.arange(SIZE)
 problem = CudaProblem(
-    "Guard",
+    "守卫",
     map_guard_test,
     [a],
     out,
@@ -152,17 +127,16 @@ problem.show()
 problem.check()
 # -
 
-# ## Puzzle 4 - Map 2D
+# ## 练习 4 - 二维映射
 #
-# Implement a kernel that adds 10 to each position of `a` and stores it in `out`.
-# Input `a` is 2D and square. You have more threads than positions.
+# 实现一个内核，将 `a` 的每个位置加 10，并将其存储在 `out` 中。输入 `a` 是二维且正方形的。线程数多于位置数。
 
 # +
 def map_2D_test(cuda):
     def call(out, a, size) -> None:
         local_i = cuda.threadIdx.x
         local_j = cuda.threadIdx.y
-        # FILL ME IN (roughly 2 lines)
+        # 在这里填写代码（大约 2 行）
 
     return call
 
@@ -171,7 +145,7 @@ SIZE = 2
 out = np.zeros((SIZE, SIZE))
 a = np.arange(SIZE * SIZE).reshape((SIZE, SIZE))
 problem = CudaProblem(
-    "Map 2D", map_2D_test, [a], out, [SIZE], threadsperblock=Coord(3, 3), spec=map_spec
+    "二维映射", map_2D_test, [a], out, [SIZE], threadsperblock=Coord(3, 3), spec=map_spec
 )
 problem.show()
 
@@ -179,17 +153,16 @@ problem.show()
 problem.check()
 # -
 
-# ## Puzzle 5 - Broadcast
+# ## 练习 5 - 广播
 #
-# Implement a kernel that adds `a` and `b` and stores it in `out`.
-# Inputs `a` and `b` are vectors. You have more threads than positions.
+# 实现一个内核，将 `a` 和 `b` 相加，并将其存储在 `out` 中。输入 `a` 和 `b` 是向量。线程数多于位置数。
 
 # +
 def broadcast_test(cuda):
     def call(out, a, b, size) -> None:
         local_i = cuda.threadIdx.x
         local_j = cuda.threadIdx.y
-        # FILL ME IN (roughly 2 lines)
+        # 在这里填写代码（大约 2 行）
 
     return call
 
@@ -199,7 +172,7 @@ out = np.zeros((SIZE, SIZE))
 a = np.arange(SIZE).reshape(SIZE, 1)
 b = np.arange(SIZE).reshape(1, SIZE)
 problem = CudaProblem(
-    "Broadcast",
+    "广播",
     broadcast_test,
     [a, b],
     out,
@@ -213,19 +186,17 @@ problem.show()
 problem.check()
 # -
 
-# ## Puzzle 6 - Blocks
+# ## 练习 6 - 块
 #
-# Implement a kernel that adds 10 to each position of `a` and stores it in `out`.
-# You have fewer threads per block than the size of `a`.
+# 实现一个内核，将 `a` 的每个位置加 10，并将其存储在 `out` 中。每个块的线程数少于 `a` 的大小。
 
-# *Tip: A block is a group of threads. The number of threads per block is limited, but we can
-# have many different blocks. Variable `cuda.blockIdx` tells us what block we are in.*
+# *提示：块是一组线程。每个块的线程数有限，但我们可以有多个不同的块。变量 `cuda.blockIdx` 告诉我们当前所在的块。*
 
 # +
 def map_block_test(cuda):
     def call(out, a, size) -> None:
         i = cuda.blockIdx.x * cuda.blockDim.x + cuda.threadIdx.x
-        # FILL ME IN (roughly 2 lines)
+        # 在这里填写代码（大约 2 行）
 
     return call
 
@@ -234,7 +205,7 @@ SIZE = 9
 out = np.zeros((SIZE,))
 a = np.arange(SIZE)
 problem = CudaProblem(
-    "Blocks",
+    "块",
     map_block_test,
     [a],
     out,
@@ -249,16 +220,15 @@ problem.show()
 problem.check()
 # -
 
-# ## Puzzle 7 - Blocks 2D
+# ## 练习 7 - 二维块
 #
-# Implement the same kernel in 2D.  You have fewer threads per block
-# than the size of `a` in both directions.
+# 在二维中实现相同的内核。每个块的线程数少于 `a` 的大小。
 
 # +
 def map_block2D_test(cuda):
     def call(out, a, size) -> None:
         i = cuda.blockIdx.x * cuda.blockDim.x + cuda.threadIdx.x
-        # FILL ME IN (roughly 4 lines)
+        # 在这里填写代码（大约 4 行）
 
     return call
 
@@ -268,7 +238,7 @@ out = np.zeros((SIZE, SIZE))
 a = np.ones((SIZE, SIZE))
 
 problem = CudaProblem(
-    "Blocks 2D",
+    "二维块",
     map_block2D_test,
     [a],
     out,
@@ -283,18 +253,13 @@ problem.show()
 problem.check()
 # -
 
-# ## Puzzle 8 - Shared
+# ## 练习 8 - 共享内存
 #
-# Implement a kernel that adds 10 to each position of `a` and stores it in `out`.
-# You have fewer threads per block than the size of `a`.
+# 实现一个内核，将 `a` 的每个位置加 10，并将其存储在 `out` 中。每个块的线程数少于 `a` 的大小。
 
-# **Warning**: Each block can only have a *constant* amount of shared
-#  memory that threads in that block can read and write to. This needs
-#  to be a literal python constant not a variable. After writing to
-#  shared memory you need to call `cuda.syncthreads` to ensure that
-#  threads do not cross.
+# **警告**：每个块只能拥有一个 *常量* 大小的共享内存，该内存可以被该块中的线程读写。这需要是一个字面的 Python 常量，而不是变量。写入共享内存后，需要调用 `cuda.syncthreads` 以确保线程不会跨越。
 
-# (This example does not really need shared memory or syncthreads, but it is a demo.)
+# （这个例子实际上不需要共享内存或 syncthreads，但它是一个演示。）
 
 # +
 TPB = 4
@@ -308,7 +273,7 @@ def shared_test(cuda):
             shared[local_i] = a[i]
             cuda.syncthreads()
 
-        # FILL ME IN (roughly 2 lines)
+        # 在这里填写代码（大约 2 行）
 
     return call
 
@@ -317,7 +282,7 @@ SIZE = 8
 out = np.zeros(SIZE)
 a = np.ones(SIZE)
 problem = CudaProblem(
-    "Shared",
+    "共享内存",
     shared_test,
     [a],
     out,
@@ -332,12 +297,11 @@ problem.show()
 problem.check()
 # -
 
-# ## Puzzle 9 - Pooling
+# ## 练习 9 - 池化
 #
-# Implement a kernel that sums together the last 3 position of `a` and stores it in `out`.
-# You have 1 thread per position. You only need 1 global read and 1 global write per thread.
+# 实现一个内核，将 `a` 的最后 3 个位置相加，并将其存储在 `out` 中。每个位置有一个线程。每个线程只需要 1 次全局读取和 1 次全局写入。
 
-# *Tip: Remember to be careful about syncing.*
+# *提示：记得小心同步。*
 
 # +
 def pool_spec(a):
@@ -353,7 +317,7 @@ def pool_test(cuda):
         shared = cuda.shared.array(TPB, numba.float32)
         i = cuda.blockIdx.x * cuda.blockDim.x + cuda.threadIdx.x
         local_i = cuda.threadIdx.x
-        # FILL ME IN (roughly 8 lines)
+        # 在这里填写代码（大约 8 行）
 
     return call
 
@@ -362,7 +326,7 @@ SIZE = 8
 out = np.zeros(SIZE)
 a = np.arange(SIZE)
 problem = CudaProblem(
-    "Pooling",
+    "池化",
     pool_test,
     [a],
     out,
@@ -377,13 +341,11 @@ problem.show()
 problem.check()
 # -
 
-# ## Puzzle 10 - Dot Product
+# ## 练习 10 - 点积
 #
-# Implement a kernel that computes the dot-product of `a` and `b` and stores it in `out`.
-# You have 1 thread per position. You only need 2 global reads and 1 global write per thread.
+# 实现一个内核，计算 `a` 和 `b` 的点积，并将其存储在 `out` 中。每个位置有一个线程。每个线程只需要 2 次全局读取和 1 次全局写入。
 
-# *Note: For this problem you don't need to worry about number of shared reads. We will
-#  handle that challenge later.*
+# *注意：对于这个问题，你不需要担心共享内存读取的数量。我们稍后会处理这个挑战。*
 
 # +
 def dot_spec(a, b):
@@ -396,7 +358,7 @@ def dot_test(cuda):
 
         i = cuda.blockIdx.x * cuda.blockDim.x + cuda.threadIdx.x
         local_i = cuda.threadIdx.x
-        # FILL ME IN (roughly 9 lines)
+        # 在这里填写代码（大约 9 行）
     return call
 
 
@@ -405,7 +367,7 @@ out = np.zeros(1)
 a = np.arange(SIZE)
 b = np.arange(SIZE)
 problem = CudaProblem(
-    "Dot",
+    "点积",
     dot_test,
     [a, b],
     out,
@@ -420,11 +382,9 @@ problem.show()
 problem.check()
 # -
 
-# ## Puzzle 11 - 1D Convolution
+# ## 练习 11 - 一维卷积
 #
-# Implement a kernel that computes a 1D convolution between `a` and `b` and stores it in `out`.
-# You need to handle the general case. You only need 2 global reads and 1 global write per thread.
-
+# 实现一个内核，计算 `a` 和 `b` 之间的一维卷积，并将其存储在 `out` 中。需要处理通用情况。每个线程只需要 2 次全局读取和 1 次全局写入。
 
 # +
 def conv_spec(a, b):
@@ -443,12 +403,12 @@ def conv_test(cuda):
         i = cuda.blockIdx.x * cuda.blockDim.x + cuda.threadIdx.x
         local_i = cuda.threadIdx.x
 
-        # FILL ME IN (roughly 17 lines)
+        # 在这里填写代码（大约 17 行）
 
     return call
 
 
-# Test 1
+# 测试 1
 
 SIZE = 6
 CONV = 3
@@ -456,7 +416,7 @@ out = np.zeros(SIZE)
 a = np.arange(SIZE)
 b = np.arange(CONV)
 problem = CudaProblem(
-    "1D Conv (Simple)",
+    "一维卷积（简单）",
     conv_test,
     [a, b],
     out,
@@ -471,14 +431,14 @@ problem.show()
 problem.check()
 # -
 
-# Test 2
+# 测试 2
 
 # +
 out = np.zeros(15)
 a = np.arange(15)
 b = np.arange(4)
 problem = CudaProblem(
-    "1D Conv (Full)",
+    "一维卷积（完整）",
     conv_test,
     [a, b],
     out,
@@ -494,15 +454,11 @@ problem.show()
 problem.check()
 # -
 
-# ## Puzzle 12 - Prefix Sum
+# ## 练习 12 - 前缀和
 #
-# Implement a kernel that computes a sum over `a` and stores it in `out`.
-# If the size of `a` is greater than the block size, only store the sum of
-# each block.
+# 实现一个内核，计算 `a` 的总和并将其存储在 `out` 中。如果 `a` 的大小大于块大小，则仅存储每个块的总和。
 
-# We will do this using the [parallel prefix sum](https://en.wikipedia.org/wiki/Prefix_sum) algorithm in shared memory.
-# That is, each step of the algorithm should sum together half the remaining numbers.
-# Follow this diagram:
+# 我们将使用 [并行前缀和](https://en.wikipedia.org/wiki/Prefix_sum) 算法在共享内存中完成此操作。也就是说，算法的每一步应该将剩余数字的一半相加。遵循此图：
 
 # ![](https://user-images.githubusercontent.com/35882/178757889-1c269623-93af-4a2e-a7e9-22cd55a42e38.png)
 
@@ -520,18 +476,18 @@ def sum_test(cuda):
         cache = cuda.shared.array(TPB, numba.float32)
         i = cuda.blockIdx.x * cuda.blockDim.x + cuda.threadIdx.x
         local_i = cuda.threadIdx.x
-        # FILL ME IN (roughly 12 lines)
+        # 在这里填写代码（大约 12 行）
 
     return call
 
 
-# Test 1
+# 测试 1
 
 SIZE = 8
 out = np.zeros(1)
 inp = np.arange(SIZE)
 problem = CudaProblem(
-    "Sum (Simple)",
+    "求和（简单）",
     sum_test,
     [inp],
     out,
@@ -546,14 +502,14 @@ problem.show()
 problem.check()
 # -
 
-# Test 2
+# 测试 2
 
 # +
 SIZE = 15
 out = np.zeros(2)
 inp = np.arange(SIZE)
 problem = CudaProblem(
-    "Sum (Full)",
+    "求和（完整）",
     sum_test,
     [inp],
     out,
@@ -568,9 +524,9 @@ problem.show()
 problem.check()
 # -
 
-# ## Puzzle 13 - Axis Sum
+# ## 练习 13 - 轴求和
 #
-# Implement a kernel that computes a sum over each column of `a` and stores it in `out`.
+# 实现一个内核，计算 `a` 的每一列的总和并将其存储在 `out` 中。
 
 # +
 TPB = 8
@@ -587,7 +543,7 @@ def axis_sum_test(cuda):
         i = cuda.blockIdx.x * cuda.blockDim.x + cuda.threadIdx.x
         local_i = cuda.threadIdx.x
         batch = cuda.blockIdx.y
-        # FILL ME IN (roughly 12 lines)
+        # 在这里填写代码（大约 12 行）
 
     return call
 
@@ -597,7 +553,7 @@ SIZE = 6
 out = np.zeros((BATCH, 1))
 inp = np.arange(BATCH * SIZE).reshape((BATCH, SIZE))
 problem = CudaProblem(
-    "Axis Sum",
+    "轴求和",
     axis_sum_test,
     [inp],
     out,
@@ -612,18 +568,11 @@ problem.show()
 problem.check()
 # -
 
-# ## Puzzle 14 - Matrix Multiply!
+# ## 练习 14 - 矩阵乘法！
 #
-# Implement a kernel that multiplies square matrices `a` and `b` and
-# stores the result in `out`.
-#
-# *Tip: The most efficient algorithm here will copy a block into
-#  shared memory before computing each of the individual row-column
-#  dot products. This is easy to do if the matrix fits in shared
-#  memory.  Do that case first. Then update your code to compute
-#  a partial dot-product and iteratively move the part you
-#  copied into shared memory.* You should be able to do the hard case
-#  in 6 global reads.
+# 实现一个内核，将方阵 `a` 和 `b` 相乘，并将结果存储在 `out` 中。
+
+# *提示：这里最有效的算法是先将一个块复制到共享内存中，然后再计算每个单独的行-列点积。如果矩阵适合共享内存，这样做很容易。先完成这种情况。然后更新你的代码以计算部分点积，并迭代地移动你复制到共享内存的部分。* 你应该能够在困难的情况下完成 6 次全局读取。
 
 # +
 def matmul_spec(a, b):
@@ -640,11 +589,11 @@ def mm_oneblock_test(cuda):
         j = cuda.blockIdx.y * cuda.blockDim.y + cuda.threadIdx.y
         local_i = cuda.threadIdx.x
         local_j = cuda.threadIdx.y
-        # FILL ME IN (roughly 14 lines)
+        # 在这里填写代码（大约 14 行）
 
     return call
 
-# Test 1
+# 测试 1
 
 SIZE = 2
 out = np.zeros((SIZE, SIZE))
@@ -652,7 +601,7 @@ inp1 = np.arange(SIZE * SIZE).reshape((SIZE, SIZE))
 inp2 = np.arange(SIZE * SIZE).reshape((SIZE, SIZE)).T
 
 problem = CudaProblem(
-    "Matmul (Simple)",
+    "矩阵乘法（简单）",
     mm_oneblock_test,
     [inp1, inp2],
     out,
@@ -667,7 +616,7 @@ problem.show(sparse=True)
 problem.check()
 # -
 
-# Test 2
+# 测试 2
 
 # +
 SIZE = 8
@@ -676,7 +625,7 @@ inp1 = np.arange(SIZE * SIZE).reshape((SIZE, SIZE))
 inp2 = np.arange(SIZE * SIZE).reshape((SIZE, SIZE)).T
 
 problem = CudaProblem(
-    "Matmul (Full)",
+    "矩阵乘法（完整）",
     mm_oneblock_test,
     [inp1, inp2],
     out,
